@@ -9,7 +9,11 @@ const Page = require('../models/page');
 / GET pages index
 */
 router.get('/', (req,res)=> {
-    res.send('Admin area')
+    Page.find({}).sort({sorting: 1}).exec(function(err,pages){
+        res.render('admin/pages',{
+            pages:pages
+        });
+    });
 });
 
 /*
@@ -64,7 +68,7 @@ body('content','Content must have a value').notEmpty(),(req,res)=> {
                 title: title,
                 slug: slug,
                 content: content,
-                sorting: 0
+                sorting: 100
             });
 
             page.save(function(err){
