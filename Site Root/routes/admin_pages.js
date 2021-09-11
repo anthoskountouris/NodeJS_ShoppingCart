@@ -40,10 +40,9 @@ body('content','Content must have a value').notEmpty(),(req,res)=> {
     const content = req.body.content;
 
     const errors = validationResult(req);
-
-    if (errors.length === 0){
-        // console.log("en eimai mesa");
-        // console.log(errors);
+    if (errors.array().length !== 0){
+        console.log("en eimai mesa");
+        console.log("errors " +errors.array().length);
         res.render('admin/add_page',{
             errors: errors.array(),
             title: title,
@@ -51,7 +50,7 @@ body('content','Content must have a value').notEmpty(),(req,res)=> {
             content: content
         });
     } else {
-        // console.log("eimai mesa");
+        console.log("eimai mesa");
         Page.findOne({slug: slug}, function(err,page){
             if(page) {
                 req.flash('danger','Page slug exists, choose another');
@@ -69,7 +68,8 @@ body('content','Content must have a value').notEmpty(),(req,res)=> {
             });
 
             page.save(function(err){
-                if(err) return console.log(err);
+                if(err) 
+                return console.log(err);
 
                 req.flash('success','Page added!');
                 res.redirect('/admin/pages');
@@ -79,7 +79,6 @@ body('content','Content must have a value').notEmpty(),(req,res)=> {
 
         }); 
     }
-
 });
 
 //exports
