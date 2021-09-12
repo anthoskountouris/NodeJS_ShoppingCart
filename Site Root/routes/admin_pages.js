@@ -130,5 +130,63 @@ router.get('/edit-page/:slug', function(req,res){
         });
     });
 });
+
+/*
+* POST edit-page
+*/
+
+router.post('/edit-page/:slug',body('title','Title must have a value').notEmpty(),
+body('content','Content must have a value').notEmpty(),(req,res)=> {
+    const title = req.body.title;
+    let slug = req.body.slug.replace(/\s+/g,'-').toLowerCase();
+    if (slug === "") slug = title.replace(/\s+/g,'-').toLowerCase();
+    const content = req.body.content;
+    const id = req.body.id;
+
+    const errors = validationResult(req);
+    if (errors.array().length !== 0){
+        console.log("en eimai mesa");
+        console.log("errors " +errors.array().length);
+        res.render('admin/edit_page',{
+            errors: errors.array(),
+            title: title,
+            slug: slug,
+            content: content,
+            id: id
+        });
+    } else {
+        console.log("eimai mesa");
+        Page.findOne({slug: slug, _id: {'$ne':id}}, function(err,page){
+            if(page) {
+                req.flash('danger','Page slug exists, choose another');
+                res.render('admin/edit_page', {
+                    title: title,
+                    slug: slug,
+                    content:content,
+                    id: id
+                });
+            } else {
+              Page.findById(id, function(err,page){
+                  if (err) return console.log(err);
+
+                  page.title = title;
+                  page.slug = slug;
+                  page.content = content;
+
+                page.save(function(err){
+                    if(err) 
+                    return console.log(err);
+
+                    req.flash('success','Page added!');
+                    res.redirect('/admin/pages/edit-page/'+page.slug);
+                });
+
+              });
+            }
+
+        }); 
+    }
+});
+
 //exports
 module.exports = router;
