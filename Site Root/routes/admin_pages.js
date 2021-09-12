@@ -17,7 +17,7 @@ router.get('/', (req,res)=> {
 });
 
 /*
-/ GET add index
+/GET pages index
 */
 router.get('/add-page', (req,res)=> {
 
@@ -85,5 +85,50 @@ body('content','Content must have a value').notEmpty(),(req,res)=> {
     }
 });
 
+/*
+ POST pareorder pages
+*/
+router.post('/reorder-pages', function(req,res) {
+    const ids = req.body['id[]'];
+    console.log(ids);
+    console.log(req.body);
+    console.dir(req.body);
+
+    // const count = 0;
+
+    // for(let i=0; i<ids.length; i++){
+    //     const id = ids[i];
+    //     count++;
+
+    //     (function(count) {
+
+    //     Page.findById(id, (err,page)=>{
+    //         page.sorting = count;
+    //         page.save((err)=>{
+    //             if(err) 
+    //                 return console.log(err);
+    //         });
+    //      });
+    //     })(count);
+    // }
+});
+
+/*
+/GET edit index
+*/
+router.get('/edit-page/:slug', function(req,res){
+    console.log(req.params.slug)
+    Page.findOne({slug: req.params.slug}, function(err,page){
+        if (err)
+            return console.log(err);
+
+        res.render('admin/edit_page',{
+            title: page.title,
+            slug: page.slug,
+            content: page.content,
+            id: page._id
+        });
+    });
+});
 //exports
 module.exports = router;

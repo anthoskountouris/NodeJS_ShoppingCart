@@ -7,7 +7,7 @@
 <table class="table table-striped">
 
     <thead>
-        <tr>
+        <tr class=="Home">
             <th>Title</th>
             <th>Edit</th>
             <th>Delete</th>
@@ -15,19 +15,35 @@
     </thead>
     <tbody>
         <% pages.forEach(function(page) { %> 
-            <tr>
-            <td><%= page.title %></td>
-            <td><a href="/admin/pages/edit-page/<% page.slug %>">Edit</a></td>
-            <% if (page.slug == "home") {%> 
-                <td></td>
-            <% } else { %>
-                <td><a href="/admin/pages/delete-page/<% page._id %>">Delete</a></td>
-            <%  } %> 
-            
-        </tr>
+            <tr id="id_<% page._id%>" class="<% page.slug%>">
+                <td><%= page.title %></td>
+                <td><a href="/admin/pages/edit-page/<%= page.slug %>">Edit</a></td>
+                <% if (page.slug == "home") {%> 
+                    <td></td>
+                <% } else { %>
+                    <td><a href="/admin/pages/delete-page/<%= page._id %>">Delete</a></td>
+                <%  } %> 
+                
+            </tr>
         <% }); %>
 
     </tbody>
 </table>
+
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+
+<script>
+
+    $('body').sortable({
+        items: "tr:not('.Home')",
+        placeholder: "ui-state-highlight",
+        update: function() {
+            const ids = $('tbody').sortable("serialize");
+            const url = "/admin/pages/reorder-pages";
+
+            $.post(url,ids);
+        }
+    });
+</script>
 
 <%- include('../layouts/adminFooter') %> 
