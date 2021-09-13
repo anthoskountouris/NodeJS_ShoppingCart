@@ -68,7 +68,7 @@ app.get('/', (req,res)=> {
 const pages = require('./routes/pages.js');
 const adminPages = require('./routes/admin_pages.js');
 const adminCategories = require('./routes/admin_categories.js');
-const adminProducts = require('/routes/admin_products.js');
+const adminProducts = require('./routes/admin_products.js');
 
 app.use('/admin/pages',adminPages);
 app.use('/admin/categories',adminCategories);

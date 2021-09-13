@@ -21,7 +21,8 @@
                 <% if (page.slug == "home") {%> 
                     <td></td>
                 <% } else { %>
-                    <td><a class="confirmDeletion" href="/admin/pages/delete-page/<%= page._id %>">Delete</a></td>
+                    <td><a class="confirmDeletion" onclick="return confirm('Are you sure you want to Delete?');" 
+                        id="btnDelete" href="/admin/pages/delete-page/<%= page._id %>">Delete</a></td>
                 <%  } %> 
                 
             </tr>
