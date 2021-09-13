@@ -5,6 +5,7 @@ const { check, body, validationResult } = require('express-validator');
 
 // Get page model
 const Page = require('../models/page');
+
 /*
 / GET pages index
 */
@@ -186,6 +187,19 @@ body('content','Content must have a value').notEmpty(),(req,res)=> {
 
         }); 
     }
+});
+
+/*
+/ GET delete index
+*/
+router.get('/delete-page/:id', (req,res)=> {
+    Page.findByIdAndRemove(req.params.id, function(err){
+    if (err) return console.log(err);
+
+    req.flash('success','Page delete!');
+    res.redirect('/admin/pages/');
+
+    });
 });
 
 //exports

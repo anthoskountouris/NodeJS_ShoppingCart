@@ -63,8 +63,10 @@ app.get('/', (req,res)=> {
 //Set routes
 const pages = require('./routes/pages.js');
 const adminPages = require('./routes/admin_pages.js')
+const adminCategories = require('./routes/admin_categories.js')
 
 app.use('/admin/pages',adminPages)
+app.use('/admin/categories',adminCategories)
 app.use('/',pages);
 
 
