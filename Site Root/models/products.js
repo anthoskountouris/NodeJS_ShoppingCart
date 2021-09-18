@@ -11,7 +11,7 @@ const ProductSchema = mongoose.Schema({
     slug: {
         type: String,
     },
-    content: {
+    desc: {
         type: String,
         required: true
     },

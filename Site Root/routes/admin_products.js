@@ -3,14 +3,42 @@ const router = express.Router();
 const mkdirp = require('mkdirp');
 const fs = require('fs-extra');
 const resizeImg = require('resize-img');
+const multer = require("multer");
+// const { storage } = require('../cloudinary');
+// const upload = multer({ storage }).single("image");
 
-const { check, body, validationResult } = require('express-validator');
+// File upload folder
+const DIR = './public/product_images';
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, DIR);
+    },
+    filename: (req, file, cb) => {
+      const fileName = file.originalname.toLowerCase().split(' ').join('-');
+      cb(null, fileName)
+    }
+  });
+
+const upload = multer({
+storage: storage,
+fileFilter: (req, file, cb) => {
+    if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
+    cb(null, true);
+    } else {
+    cb(null, false);
+    return cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
+    }
+}
+});
+
+const { check, body, validationErrors, isImage } = require('express-validator');
 
 // Get Product model
 const Product = require('../models/products');
 
 // Get Category model
 const Category = require('../models/category');
+const { mkdirP } = require('mkdirp');
 
 /*
 / GET products index
@@ -31,67 +59,141 @@ router.get('/', (req,res)=> {
 });
 
 /*
-/GET pages index
+/GET add product
 */
-router.get('/add-page', (req,res)=> {
+router.get('/add-product', (req,res)=> {
 
     const title = "";
-    const slug = "";
-    const content = "";
+    const price = "";
+    const desc = "";
 
-    res.render('admin/add_page',{
-        title: title,
-        slug: slug,
-        content: content
-    })
+    Category.find((err, categories)=>{
+        res.render('admin/add_product',{
+            title: title,
+            price: price,
+            categories: categories,
+            desc: desc
+        });
+    });
 });
 
 /*
-/ GET add index
+/ Post add product
 */
 
-router.post('/add-page',body('title','Title must have a value').notEmpty(),
-body('content','Content must have a value').notEmpty(),(req,res)=> {
-    const title = req.body.title;
-    let slug = req.body.slug.replace(/\s+/g,'-').toLowerCase();
-    if (slug === "") slug = title.replace(/\s+/g,'-').toLowerCase();
-    const content = req.body.content;
+router.post('/add-product',upload.single('image'),(req,res)=> {
 
-    const errors = validationResult(req);
-    if (errors.array().length !== 0){
-        console.log("en eimai mesa");
-        console.log("errors " +errors.array().length);
-        res.render('admin/add_page',{
-            errors: errors.array(),
-            title: title,
-            slug: slug,
-            content: content
+
+    // if (!(req.files && req.files.image)){
+    //     console.log('NUUULLL');
+    // }
+
+    // const imageFile = typeof req.files.image !=="undefined" ? req.files.image.name : "";
+    // }else if(!req.files){ 
+    //     imageFile =""; 
+    // }else if(req.files){
+    //     const imageFile = typeof(req.files.image) !== "undefined" ? req.files.image.name : "";
+    // }
+
+    
+    // if(!req.files){ 
+    //     imageFile =""; }
+    // if(req.files){
+    //     const imageFile = typeof(req.files.image) !== "undefined" ? req.files.image.name : "";
+    // }
+    
+
+    req.checkBody('title', 'Title must have a value').notEmpty();
+    req.checkBody('desc', 'Description must have a value').notEmpty();
+    req.checkBody('price','Price must have a value').isDecimal();
+    // req.checkBody('image','You must upload an image').custom((value, {req.files.image}) => {
+    //     switch (path.extname(imageFile.toLowerCase())) {
+    //         case '.jpg':
+    //             return '.jpg';
+    //         case '.jpeg':
+    //             return '.jpeg';
+    //         case  '.png':
+    //             return '.png';
+    //         default:
+    //             return false;
+    //     }});
+
+    const title = req.body.title;
+    let slug = title.replace(/\s+/g,'-').toLowerCase();
+    const desc = req.body.desc;
+    const price = req.body.price;
+    const category = req.body.category;
+
+    const errors = req.validationErrors();
+
+    console.log("errors: " + errors);
+    
+
+    if (errors){
+        console.log("eshei errors");
+        console.log("errors " + errors.length);
+
+        Category.find((err, categories)=>{
+            res.render('admin/add_product',{
+                errors: errors,
+                title: title,
+                price: price,
+                categories: categories,
+                desc: desc
+            });
         });
     } else {
-        console.log("eimai mesa");
-        Page.findOne({slug: slug}, function(err,page){
-            if(page) {
-                req.flash('danger','Page slug exists, choose another');
-                res.render('admin/add_page', {
-                    title: title,
-                    slug: slug,
-                    content:content
+        // console.log("eimai mesa");
+        Product.findOne({slug: slug}, function(err, product){
+            if(product) {
+                req.flash('danger','Product slug exists, choose another');
+                Category.find((err, categories)=>{
+                    res.render('admin/add_product',{
+                        title: title,
+                        price: price,
+                        categories: categories,
+                        desc: desc
+                    });
                 });
             } else {
-                const page = new Page({
+                const price2 = parseFloat(price).toFixed(2);
+                const product = new Product({
                 title: title,
                 slug: slug,
-                content: content,
-                sorting: 100
+                desc: desc,
+                price: price2,
+                category: category,
+                image: imageFile
             });
 
-            page.save(function(err){
-                if(err) 
-                return console.log(err);
+            console.log(product)
 
-                req.flash('success','Page added!');
-                res.redirect('/admin/pages');
-            });
+            // product.save(function(err){
+                // if(err) 
+                // return console.log(err);
+
+                // mkdirp('public/product_images/'+product._id, function(err){
+                //     return console.log(err);
+                // });
+                // mkdirp('public/product_images/'+product._id + '/gallery', function(err){
+                //     return console.log(err);
+                // });
+                // mkdirp('public/product_images/'+product._id + '/gallery/thumbs', function(err){
+                //     return console.log(err);
+                // });
+
+                // if(imageFile != ""){
+                //     const productImage = req.files.image;
+                //     const path = 'public/product_image' +product._id + '/' + imageFile;
+
+                //     productImage.mv(path, function(err){
+                //         return console.log(err);
+                //     })
+                // }
+
+                 req.flash('success','Product added!');
+                 res.redirect('/admin/products');
+            // });
 
             }
 
@@ -149,20 +251,24 @@ router.get('/edit-page/:id', function(req,res){
 * POST edit-page
 */
 
-router.post('/edit-page/:id',body('title','Title must have a value').notEmpty(),
-body('content','Content must have a value').notEmpty(),(req,res)=> {
+router.post('/edit-page/:id',(req,res)=> {
+
+    req.checkBody('title','Title must have a value').notEmpty();
+    req.checkBody('content','Content must have a value').notEmpty()
+
     const title = req.body.title;
     let slug = req.body.slug.replace(/\s+/g,'-').toLowerCase();
     if (slug === "") slug = title.replace(/\s+/g,'-').toLowerCase();
     const content = req.body.content;
     const id = req.params.id;
 
-    const errors = validationResult(req);
-    if (errors.array().length !== 0){
+    const errors = req.validationErrors();
+
+    if (errors.length !== 0){
         console.log("en eimai mesa");
-        console.log("errors " +errors.array().length);
+        console.log("errors " +errors.length);
         res.render('admin/edit_page',{
-            errors: errors.array(),
+            errors: errors,
             title: title,
             slug: slug,
             content: content,

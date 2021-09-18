@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { check, body, validationResult } = require('express-validator');
+const { check, body, validationErrors } = require('express-validator');
 
 // Get page model
 const Page = require('../models/page');
@@ -18,7 +18,7 @@ router.get('/', (req,res)=> {
 });
 
 /*
-/GET pages index
+/GET add page
 */
 router.get('/add-page', (req,res)=> {
 
@@ -37,19 +37,23 @@ router.get('/add-page', (req,res)=> {
 / GET add index
 */
 
-router.post('/add-page',body('title','Title must have a value').notEmpty(),
-body('content','Content must have a value').notEmpty(),(req,res)=> {
+router.post('/add-page',(req,res)=> {
+
+    req.checkBody('title', 'Title must have a value').notEmpty();
+    req.checkBody('content', 'Content must have a value').notEmpty();
+
     const title = req.body.title;
     let slug = req.body.slug.replace(/\s+/g,'-').toLowerCase();
     if (slug === "") slug = title.replace(/\s+/g,'-').toLowerCase();
     const content = req.body.content;
 
-    const errors = validationResult(req);
-    if (errors.array().length !== 0){
+    const errors = req.validationErrors();
+
+    if (errors.length !== 0){
         console.log("en eimai mesa");
-        console.log("errors " +errors.array().length);
+        console.log("errors " +errors.length);
         res.render('admin/add_page',{
-            errors: errors.array(),
+            errors: errors,
             title: title,
             slug: slug,
             content: content
@@ -136,20 +140,24 @@ router.get('/edit-page/:id', function(req,res){
 * POST edit-page
 */
 
-router.post('/edit-page/:id',body('title','Title must have a value').notEmpty(),
-body('content','Content must have a value').notEmpty(),(req,res)=> {
+router.post('/edit-page/:id',(req,res)=> {
+
+    req.checkBody('title', 'Title must have a value').notEmpty();
+    req.checkBody('content', 'Content must have a value').notEmpty();
+
     const title = req.body.title;
     let slug = req.body.slug.replace(/\s+/g,'-').toLowerCase();
     if (slug === "") slug = title.replace(/\s+/g,'-').toLowerCase();
     const content = req.body.content;
     const id = req.params.id;
 
-    const errors = validationResult(req);
-    if (errors.array().length !== 0){
+    const errors = req.validationErrors();
+    
+    if (errors.length !== 0){
         console.log("en eimai mesa");
-        console.log("errors " +errors.array().length);
+        console.log("errors " +errors.length);
         res.render('admin/edit_page',{
-            errors: errors.array(),
+            errors: errors,
             title: title,
             slug: slug,
             content: content,

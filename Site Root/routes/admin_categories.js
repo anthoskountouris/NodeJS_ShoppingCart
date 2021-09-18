@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { check, body, validationResult } = require('express-validator');
+const { check, body, validationErrors } = require('express-validator');
 
 // Get Category model
 const Category = require('../models/category');
@@ -34,17 +34,20 @@ router.get('/add-category', (req,res)=> {
 / POST add category
 */
 
-router.post('/add-category',body('title','Title must have a value').notEmpty(),(req,res)=> {
+router.post('/add-category',(req,res)=> {
+
+    req.checkBody('title', 'Title must have a value').notEmpty();
+
     const title = req.body.title;
     let slug = title.replace(/\s+/g,'-').toLowerCase();
 
-    const errors = validationResult(req);
+    const errors = req.validationErrors();
 
-    if (errors.array().length !== 0){
+    if (errors.length !== 0){
         // console.log("en eimai mesa");
         // console.log("errors " +errors.array().length);
         res.render('admin/add_category',{
-            errors: errors.array(),
+            errors: errors,
             title: title,
         });
     } else {
@@ -97,18 +100,21 @@ router.get('/edit-category/:id', function(req,res){
 * POST edit-category
 */
 
-router.post('/edit-category/:id',body('title','Title must have a value').notEmpty(),(req,res)=> {
+router.post('/edit-category/:id',(req,res)=> {
+
+    req.checkBody('title', 'Title must have a value').notEmpty();
+
     const title = req.body.title;
     let slug = title.replace(/\s+/g,'-').toLowerCase();
     const id = req.params.id;
 
-    const errors = validationResult(req);
+    const errors = req.validationErrors();
 
-    if (errors.array().length !== 0){
+    if (errors.length !== 0){
         // console.log("en eimai mesa");
         // console.log("errors " +errors.array().length);
         res.render('admin/edit_category',{
-            errors: errors.array(),
+            errors: errors,
             title: title,
             id: id
         });

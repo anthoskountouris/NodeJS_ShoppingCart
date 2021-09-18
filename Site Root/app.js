@@ -1,9 +1,13 @@
+if (process.env.NODE_ENV !== "production") {
+    require('dotenv').config();
+}
+
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const config = require('./config/database');
 const session = require('express-session')
-// const expressValidator = require('express-validator');
+const expressValidator = require('express-validator');
 const fileUpload = require('express-fileupload');
 
 //connect to db
@@ -33,7 +37,7 @@ app.locals.errors = null;
 app.use(fileUpload());
 
 //body-parser middleware
-// app.use(expressValidator());
+
 // parse application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: false }))
 // parse application/json
@@ -48,7 +52,38 @@ app.use(session({
   }))
 
 // Express validator middleware
-// app.use(expressValidator());
+app.use(expressValidator({
+    // errorFormatter: function(param, msg, value){
+    //     const namespace = param.split('.'),
+    //     root = namespace.shift(),
+    //     formParam = root;
+    //      while(namespace.length){
+    //          formParam += '[' + namespace.shift() + ']';
+    //      }
+    //      return {
+    //         param: formParam,
+    //         msg: msg,
+    //         value, value
+    //      };
+    // },
+    CustomValidators: {
+        isImage: function(value, filename) {
+            const extension = (path.extname(filename)).toLowerCase();
+            switch (extension) {
+                case '.jpg':
+                    return '.jpg';
+                case '.jpeg':
+                    return '.jpeg';
+                case  '.png':
+                    return '.png';
+                default:
+                    return false;
+            }
+        }
+    }
+
+}));
+
 
 // Express Messages middleware
 app.use(require('connect-flash')());
